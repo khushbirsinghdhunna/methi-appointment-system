@@ -13,12 +13,20 @@ process.on('unhandledRejection', (reason) => console.error('Unhandled Rejection:
 process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
 
 // ==========================================
-// MongoDB Connection
+// MongoDB Connection (Serverless-Safe)
 // ==========================================
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/methi-clinic';
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+let isConnected = false;
+async function connectDB() {
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    return;
+  }
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/methi-clinic';
+  await mongoose.connect(MONGODB_URI);
+  isConnected = true;
+  console.log('✅ Connected to MongoDB');
+}
+
+connectDB().catch(err => console.error('❌ MongoDB connection error:', err));
 
 // ==========================================
 // Express Setup
@@ -27,7 +35,18 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json());
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    try {
+      await connectDB();
+    } catch (err) {
+      console.error('Database connection error:', err);
+    }
+  }
+  next();
+});
 app.use(express.static(path.join(process.cwd(), 'public')));
+
 
 // ==========================================
 // Mongoose Schemas & Models
@@ -524,7 +543,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
+
 
