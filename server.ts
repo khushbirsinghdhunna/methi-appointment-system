@@ -140,16 +140,18 @@ const META_WA_PHONE_ID = process.env.META_WA_PHONE_ID;
 const META_WA_VERIFY_TOKEN = process.env.META_WA_VERIFY_TOKEN;
 
 async function sendMetaWhatsAppMessage(to: string, payload: any) {
-  if (!META_WA_TOKEN || !META_WA_PHONE_ID) {
+  const token = process.env.META_WA_TOKEN || META_WA_TOKEN;
+  const phoneId = process.env.META_WA_PHONE_ID || META_WA_PHONE_ID;
+  if (!token || !phoneId) {
     console.error('WhatsApp API credentials missing');
     return;
   }
   try {
-    const url = `https://graph.facebook.com/v22.0/${META_WA_PHONE_ID}/messages`;
+    const url = `https://graph.facebook.com/v22.0/${phoneId}/messages`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${META_WA_TOKEN}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -168,6 +170,7 @@ async function sendMetaWhatsAppMessage(to: string, payload: any) {
     console.error('Fetch error sending WA message:', err);
   }
 }
+
 
 // ==========================================
 // Auth Middleware & Routes
@@ -225,9 +228,6 @@ app.get('/api/whatsapp/webhook', (req, res) => {
 });
 
 app.post('/api/whatsapp/webhook', async (req, res) => {
-  // Immediately respond 200 'EVENT_RECEIVED' to Meta
-  res.status(200).send('EVENT_RECEIVED');
-
   try {
     console.log('[Meta WA Webhook] Incoming body:', JSON.stringify(req.body));
     const entry = req.body.entry?.[0];
@@ -236,9 +236,10 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
     const message = value?.messages?.[0];
 
     if (!message) {
-      console.log('[Meta WA Webhook] No message in payload (likely status update).');
-      return;
+      console.log('[Meta WA Webhook] No message in payload (status update).');
+      return res.status(200).send('EVENT_RECEIVED');
     }
+
 
     const from = message.from;
     console.log(`[Meta WA Webhook] Message from: ${from}, type: ${message.type}`);
@@ -274,7 +275,7 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
 
         await sendMetaWhatsAppMessage(from, {
           type: 'text',
-          text: { body: `✅ Your appointment for ${date} at ${time} has been confirmed. ID: ${appId}` }
+          text: { body: `🎉 *Your Appointment is CONFIRMED!*\n\n👨‍⚕️ *Doctor:* Dr. Vanita Methi\n📅 *Date:* Today (${date})\n🕐 *Time:* ${time}\n📋 *Ref ID:* #${appId}\n\n📍 *Clinic:* DR METHI ENT CARE AND SKIN TALKS` }
         });
       }
     } else if (message.type === 'text') {
@@ -288,16 +289,22 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
           type: 'text',
           text: { body: `Sorry, we are closed today. Reason: ${blocked.reason}` }
         });
-        return;
+        return res.status(200).send('EVENT_RECEIVED');
       }
 
       const availabilities = await AvailabilityModel.find({ day: dayName, active: true });
       let allSlots: string[] = [];
       for (const av of availabilities) {
         if (av.startTime && av.endTime) {
-          const slots = generateSlots(av.startTime, av.endTime);
-          allSlots = allSlots.concat(slots);
+          allSlots.push(...generateSlots(av.startTime, av.endTime));
         }
+      }
+
+      if (allSlots.length === 0) {
+        allSlots = [
+          "5:00 PM", "5:10 PM", "5:20 PM", "5:30 PM", 
+          "5:40 PM", "5:50 PM", "6:00 PM", "6:10 PM"
+        ];
       }
 
       const existingApps = await WAAppointmentModel.find({ date: dateStr, status: { $ne: 'cancelled' } });
@@ -310,15 +317,15 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
           type: 'text',
           text: { body: `Sorry, there are no available slots for today.` }
         });
-        return;
+        return res.status(200).send('EVENT_RECEIVED');
       }
 
       const topSlots = availableSlots.slice(0, 3);
       
-      const buttons = topSlots.map((slot, index) => ({
+      const buttons = topSlots.map((slot) => ({
         type: 'reply',
         reply: {
-          id: `slot_${index}`,
+          id: `slot_${slot.replace(/[:\s]/g, '').toLowerCase()}`,
           title: slot
         }
       }));
@@ -328,7 +335,7 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
         interactive: {
           type: 'button',
           body: {
-            text: 'Please select an available time slot for today:'
+            text: 'Welcome to DR METHI CLINIC! 👋 Please select an available time slot for today:'
           },
           action: {
             buttons: buttons
@@ -338,8 +345,13 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
     }
   } catch (err) {
     console.error('Webhook processing error:', err);
+  } finally {
+    if (!res.headersSent) {
+      res.status(200).send('EVENT_RECEIVED');
+    }
   }
 });
+
 
 // ==========================================
 // Appointment Endpoints
