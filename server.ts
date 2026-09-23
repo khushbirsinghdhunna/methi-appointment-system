@@ -488,6 +488,30 @@ app.delete('/api/blocked-dates/:date', authMiddleware, async (req, res): Promise
 });
 
 // ==========================================
+// Health check & 24/7 Keep-Alive
+// ==========================================
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Automatic self-ping to prevent free-tier hosting (like Render) from sleeping
+const EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
+if (EXTERNAL_URL) {
+  const pingUrl = `${EXTERNAL_URL}/api/health`;
+  console.log(`📡 Keep-Alive configured for ${pingUrl} (pings every 10 minutes)`);
+  setInterval(async () => {
+    try {
+      const res = await fetch(pingUrl);
+      if (res.ok) {
+        console.log(`⏰ [Keep-Alive] Pinged ${pingUrl} at ${new Date().toLocaleTimeString()} - Status OK`);
+      }
+    } catch (err: any) {
+      console.warn(`⚠️ [Keep-Alive] Ping warning:`, err.message);
+    }
+  }, 10 * 60 * 1000); // 10 minutes
+}
+
+// ==========================================
 // Catch-all route & Server Start
 // ==========================================
 app.get('*', (req, res) => {
@@ -497,3 +521,4 @@ app.get('*', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+

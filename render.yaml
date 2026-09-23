@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: methi-appointment-system
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: META_WA_VERIFY_TOKEN
+        value: methi_clinic_webhook_2026
