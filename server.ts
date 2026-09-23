@@ -206,18 +206,24 @@ app.get('/api/whatsapp/webhook', (req, res) => {
 });
 
 app.post('/api/whatsapp/webhook', async (req, res) => {
-  // Immediately respond 200 'EVENT_RECEIVED'
+  // Immediately respond 200 'EVENT_RECEIVED' to Meta
   res.status(200).send('EVENT_RECEIVED');
 
   try {
+    console.log('[Meta WA Webhook] Incoming body:', JSON.stringify(req.body));
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];
     const value = change?.value;
     const message = value?.messages?.[0];
 
-    if (!message) return;
+    if (!message) {
+      console.log('[Meta WA Webhook] No message in payload (likely status update).');
+      return;
+    }
 
     const from = message.from;
+    console.log(`[Meta WA Webhook] Message from: ${from}, type: ${message.type}`);
+
 
     if (message.type === 'interactive') {
       const interactive = message.interactive;
