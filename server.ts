@@ -232,8 +232,9 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
     console.log('[Meta WA Webhook] Incoming body:', JSON.stringify(req.body));
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];
-    const value = change?.value;
+    const value = change?.value || req.body.value || req.body;
     const message = value?.messages?.[0];
+
 
     if (!message) {
       console.log('[Meta WA Webhook] No message in payload (status update).');
