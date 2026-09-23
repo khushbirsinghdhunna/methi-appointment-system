@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Appointment — DR METHI ENT CARE AND SKIN TALKS</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            brand: {
+              ivory: '#F8F6F2',
+              navy: '#0B1426',
+              gold: '#C9A96E',
+              border: '#D6D2CC',
+              error: '#93000a',
+              errorbg: '#ffdad6',
+              success: '#065f46',
+              successbg: '#d1fae5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    /* Hide scrollbar for horizontally scrollable elements */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+  </style>
+</head>
+<body class="bg-brand-ivory min-h-screen text-brand-navy font-sans">
+  
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-md hidden transition-opacity duration-300">
+    <div id="toast-message" class="rounded-lg shadow-lg p-4 text-sm font-medium text-center"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="fixed top-0 w-full bg-white shadow-sm z-40 h-16 flex items-center justify-center px-4">
+    <h1 class="text-brand-navy font-serif font-semibold sm:text-lg text-center flex items-center gap-2">
+      <span>⚕️</span> DR METHI ENT CARE AND SKIN TALKS
+    </h1>
+  </header>
+
+  <!-- Main content -->
+  <main class="pt-24 pb-12 px-4 max-w-2xl mx-auto flex flex-col gap-8">
+    
+    <!-- Hero Section -->
+    <section class="text-center space-y-2">
+      <h2 class="font-serif text-2xl sm:text-3xl text-brand-navy font-bold">Book Your Appointment</h2>
+      <p class="font-sans text-sm text-gray-600">Choose a convenient date and time for your consultation with Dr. Vanita Methi</p>
+    </section>
+
+    <!-- Date Selector Container -->
+    <section>
+      <h3 class="font-semibold text-lg mb-3 flex items-center gap-2">
+        <span>📅</span> Select Date
+      </h3>
+      <div id="date-container" class="flex gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x">
+        <!-- Date cards injected via JS -->
+      </div>
+    </section>
+
+    <!-- Time Slots Container -->
+    <section>
+      <h3 class="font-semibold text-lg mb-3 flex items-center gap-2">
+        <span>🕐</span> Available Times
+      </h3>
+      
+      <!-- Loading State -->
+      <div id="slots-loading" class="hidden flex justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy"></div>
+      </div>
+      
+      <!-- Empty State -->
+      <div id="slots-empty" class="hidden bg-white border border-brand-border rounded-xl p-8 text-center text-gray-500">
+        No available times for this date.
+      </div>
+      
+      <!-- Slots Grid -->
+      <div id="slots-grid" class="hidden flex flex-col gap-4">
+        <!-- Time buttons injected via JS -->
+      </div>
+    </section>
+
+    <!-- Selection Summary -->
+    <section id="selection-summary" class="hidden">
+      <div class="bg-white border-l-4 border-brand-gold rounded-r-xl shadow-sm p-4">
+        <p class="text-sm text-gray-600 mb-1">You selected</p>
+        <p id="summary-text" class="font-medium text-brand-navy">📅 ... • 🕐 ...</p>
+      </div>
+    </section>
+
+    <!-- Patient Info Form -->
+    <section id="patient-form" class="hidden bg-white p-6 rounded-xl border border-brand-border shadow-sm space-y-4">
+      <h3 class="font-semibold text-lg border-b border-brand-border pb-2 mb-4">Patient Details</h3>
+      
+      <div class="space-y-1">
+        <label for="patient-name" class="block text-sm font-medium text-gray-700">Full Name</label>
+        <input type="text" id="patient-name" placeholder="Your Full Name" required
+          class="w-full px-4 py-3 rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all">
+      </div>
+      
+      <div class="space-y-1">
+        <label for="patient-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+        <input type="tel" id="patient-phone" placeholder="Phone Number (e.g., 9109571984)" required
+          class="w-full px-4 py-3 rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all">
+      </div>
+      
+      <div class="pt-4">
+        <button id="whatsapp-btn" disabled
+          class="w-full py-4 bg-brand-navy text-white rounded-xl font-medium text-lg flex items-center justify-center gap-2 opacity-50 cursor-not-allowed transition-all duration-300 hover:bg-opacity-90">
+          Continue on WhatsApp <span>💬</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="pb-8 text-center text-xs text-gray-400">
+    © 2026 DR METHI ENT CARE AND SKIN TALKS
+  </footer>
+
+  <script src="/js/appointment.js"></script>
+</body>
+</html>

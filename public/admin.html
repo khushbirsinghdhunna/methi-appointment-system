@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — DR METHI CLINIC</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0B1426',
+                        accent: '#C9A96E',
+                        bg: '#F8F6F2',
+                        border: '#D6D2CC',
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D6D2CC; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C9A96E; }
+    </style>
+</head>
+<body class="bg-bg text-primary font-sans min-h-screen relative">
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg border border-border w-full max-w-sm">
+            <div class="text-center mb-6">
+                <h1 class="text-xs font-bold tracking-widest text-accent uppercase mb-2">DR METHI ENT CARE AND SKIN TALKS</h1>
+                <h2 class="font-serif text-2xl font-bold text-primary">Admin Login</h2>
+            </div>
+            
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200"></div>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all" placeholder="Enter admin password">
+                </div>
+                <button id="login-btn" class="w-full bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard" class="hidden min-h-screen flex flex-col">
+        <!-- Top Bar -->
+        <header class="sticky top-0 bg-white shadow-sm border-b border-border z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center gap-4">
+                        <div class="hidden sm:block">
+                            <h1 class="font-serif text-xl font-bold text-primary">Admin Dashboard</h1>
+                        </div>
+                    </div>
+                    <button id="logout-btn" class="text-sm font-medium text-gray-500 hover:text-primary transition-colors px-3 py-2 rounded-md hover:bg-gray-50">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Tabs Navigation -->
+            <div class="border-b border-border mb-8">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="tab-appointments" class="whitespace-nowrap py-4 px-1 border-b-2 border-accent text-primary font-medium text-sm transition-colors">
+                        📋 Appointments
+                    </button>
+                    <button id="tab-availability" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm transition-colors">
+                        ⏰ Availability
+                    </button>
+                    <button id="tab-blocked" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm transition-colors">
+                        🚫 Blocked Dates
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Panels -->
+            
+            <!-- Appointments Panel -->
+            <div id="panel-appointments" class="space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h2 class="font-serif text-2xl font-bold">Appointments</h2>
+                    <div class="flex items-center gap-3">
+                        <input type="date" id="filter-date" class="px-3 py-2 border border-border rounded-lg text-sm focus:ring-accent focus:border-accent outline-none">
+                        <button id="new-appt-btn" class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors shadow-sm">
+                            + New
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+                    <div id="appointments-list" class="divide-y divide-border">
+                        <!-- Rendered by JS -->
+                        <div class="p-8 text-center text-gray-500">Loading appointments...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Availability Panel -->
+            <div id="panel-availability" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-serif text-2xl font-bold">Weekly Availability</h2>
+                    <button id="save-availability-btn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm">
+                        Save Changes
+                    </button>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-border p-6 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-border">
+                                <th class="pb-3 font-medium text-gray-500 text-sm">Day</th>
+                                <th class="pb-3 font-medium text-gray-500 text-sm">Active</th>
+                                <th class="pb-3 font-medium text-gray-500 text-sm">Start Time</th>
+                                <th class="pb-3 font-medium text-gray-500 text-sm">End Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="availability-list">
+                            <!-- Rendered by JS -->
+                            <tr><td colspan="4" class="py-4 text-center text-gray-500">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Blocked Dates Panel -->
+            <div id="panel-blocked" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <!-- Add Form -->
+                    <div class="w-full sm:w-1/3">
+                        <div class="bg-white rounded-xl shadow-sm border border-border p-6">
+                            <h3 class="font-serif text-lg font-bold mb-4">Block a Date</h3>
+                            <form id="block-date-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <input type="date" id="block-date-input" required class="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-accent focus:border-accent outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason (Optional)</label>
+                                    <input type="text" id="block-reason-input" placeholder="e.g. Public Holiday" class="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-accent focus:border-accent outline-none">
+                                </div>
+                                <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+                                    Block Date
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- List -->
+                    <div class="w-full sm:w-2/3">
+                        <div class="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+                            <div class="px-6 py-4 border-b border-border bg-gray-50">
+                                <h3 class="font-serif text-lg font-bold">Currently Blocked</h3>
+                            </div>
+                            <ul id="blocked-list" class="divide-y divide-border">
+                                <!-- Rendered by JS -->
+                                <li class="p-6 text-center text-gray-500">Loading...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Appointment Modal -->
+    <div id="new-appointment-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity backdrop-blur-sm" id="modal-backdrop"></div>
+
+        <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-border">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                            <h3 class="font-serif text-xl font-bold leading-6 text-primary" id="modal-title">New Appointment</h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="modal-name" class="block text-sm font-medium text-gray-700">Patient Name</label>
+                                    <input type="text" id="modal-name" class="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="modal-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input type="tel" id="modal-phone" class="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent sm:text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="modal-date" class="block text-sm font-medium text-gray-700">Date</label>
+                                        <input type="date" id="modal-date" class="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="modal-time" class="block text-sm font-medium text-gray-700">Time</label>
+                                        <select id="modal-time" class="mt-1 block w-full rounded-md border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent sm:text-sm bg-white">
+                                            <option value="">Select a date first</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-border">
+                    <button type="button" id="modal-submit" class="inline-flex w-full justify-center rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-opacity-90 sm:ml-3 sm:w-auto">Save</button>
+                    <button type="button" id="modal-cancel" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

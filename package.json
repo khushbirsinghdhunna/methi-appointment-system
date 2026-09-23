@@ -1,0 +1,28 @@
+{
+  "name": "methi-appointment-system",
+  "version": "1.0.0",
+  "description": "Standalone appointment booking system for DR METHI ENT CARE AND SKIN TALKS",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "esbuild server.ts --bundle --platform=node --outfile=dist/server.js --external:mongoose --external:jsonwebtoken --external:dotenv --external:express",
+    "start": "node dist/server.js",
+    "dev": "npx tsx server.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.14.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.3",
+    "esbuild": "^0.25.4",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
